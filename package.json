@@ -20,7 +20,7 @@
     }
   },
   "scripts": {
-    "build": "yarn tsup src --format cjs,esm --sourcemap --clean --dts",
+    "build": "yarn tsup src/index.ts --format cjs,esm --sourcemap --clean --dts",
     "prepack": "yarn build"
   },
   "packageManager": "yarn@3.3.0",

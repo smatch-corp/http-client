@@ -1,6 +1,6 @@
 import type { AfterResponseHook, BeforeRequestHook, Options, ResponsePromise } from '@toss/ky';
-import * as ky from '@toss/ky';
 import type { KyInstance } from 'ky/distribution/types/ky';
+import ky from './ky.cjs';
 
 const noop = () => {};
 const group = console.groupCollapsed || console.log;
@@ -71,7 +71,7 @@ export const createHttpClient: CreateHttpClient = (prefixUrl, options = {}) => {
     }
   };
 
-  const instance = ky.default.create({
+  const instance = ky.create({
     prefixUrl,
     credentials: 'same-origin',
     throwHttpErrors: true,
