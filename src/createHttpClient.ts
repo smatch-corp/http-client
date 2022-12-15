@@ -1,6 +1,6 @@
 import type { AfterResponseHook, BeforeRequestHook, Options, ResponsePromise } from '@toss/ky';
 import type { KyInstance } from 'ky/distribution/types/ky';
-import ky from './ky.cjs';
+import ky from './ky';
 
 const noop = () => {};
 const group = console.groupCollapsed || console.log;
