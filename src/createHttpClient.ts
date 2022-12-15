@@ -1,5 +1,6 @@
-import ky, { AfterResponseHook, BeforeRequestHook, Options, ResponsePromise } from 'ky';
-import { KyInstance } from 'ky/distribution/types/ky';
+import type { AfterResponseHook, BeforeRequestHook, Options, ResponsePromise } from '@toss/ky';
+import ky from '@toss/ky';
+import type { KyInstance } from 'ky/distribution/types/ky';
 
 const noop = () => {};
 const group = console.groupCollapsed || console.log;
