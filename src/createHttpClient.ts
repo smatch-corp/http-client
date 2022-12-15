@@ -23,25 +23,43 @@ export const createHttpClient: CreateHttpClient = (prefixUrl, options = {}) => {
   const logBeforeRequest: BeforeRequestHook = (request, options) => {
     requestPerformanceMap.set(request, performance.now());
 
-    group(`[🟡 REQ] %s %s`, request.method.toUpperCase(), request.url);
-    log(options.body);
+    const { pathname } = new URL(request.url);
+    group(`[🟡 REQ] %s %s`, request.method.toUpperCase(), pathname);
+    log('Request Body:', options.body || '(No Request Body)');
     groupEnd();
   };
 
-  const logAfterResponse: AfterResponseHook = (request, _options, response) => {
+  const logAfterResponse: AfterResponseHook = async (request, _options, response) => {
     const t1 = requestPerformanceMap.get(request);
     const t2 = performance.now();
 
-    group(`[🟢 RES] %d %s %s %s`, response.status, response.statusText, request.method.toUpperCase(), request.url);
+    const { pathname } = new URL(request.url);
+    group(`[🟢 RES] %s %s - %d`, request.method.toUpperCase(), pathname, response.status);
+
     if (t1 && t2) {
       log(`Time: ${(t2 - t1).toFixed(5)}ms`);
       requestPerformanceMap.delete(request);
     }
+
+    try {
+      log('Response Body:', await response.json());
+    } catch {
+      log('Response Body:', await response.text());
+    }
+
     groupEnd();
   };
 
   const retryWithRefresh = (getInstance: () => KyInstance): AfterResponseHook => (request, _options, response) => {
     const instance = getInstance();
+
+    if ('__refresh' in request) {
+      return;
+    }
+
+    Object.assign(request, {
+      __refresh: true,
+    });
 
     if (response.status === 401) {
       const next = (request: Request) => {
