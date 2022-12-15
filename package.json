@@ -20,7 +20,7 @@
     }
   },
   "scripts": {
-    "build": "yarn tsup src/index.ts --format cjs,esm --sourcemap --clean --dts",
+    "build": "yarn tsup src/index.ts --format cjs,esm --sourcemap --clean --dts --minify",
     "prepack": "yarn build"
   },
   "packageManager": "yarn@3.3.0",
@@ -29,7 +29,6 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
-    "@toss/ky": "^1.1.1",
-    "ky": "0.31.3"
+    "ky": "^0.25"
   }
 }

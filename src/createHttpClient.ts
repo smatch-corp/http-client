@@ -1,6 +1,5 @@
-import type { AfterResponseHook, BeforeRequestHook, Options, ResponsePromise } from '@toss/ky';
-import type { KyInstance } from 'ky/distribution/types/ky';
-import ky from './ky';
+import type { AfterResponseHook, BeforeRequestHook, Options, ResponsePromise } from 'ky';
+import ky from 'ky';
 
 const noop = () => {};
 const group = console.groupCollapsed || console.log;
@@ -13,7 +12,7 @@ interface CreateHttpClientOptions extends Options {
 }
 
 interface CreateHttpClient {
-  (prefixUrl: string, options?: CreateHttpClientOptions): KyInstance;
+  (prefixUrl: string, options?: CreateHttpClientOptions): typeof ky;
 }
 
 export const createHttpClient: CreateHttpClient = (prefixUrl, options = {}) => {
@@ -51,7 +50,7 @@ export const createHttpClient: CreateHttpClient = (prefixUrl, options = {}) => {
     groupEnd();
   };
 
-  const retryWithRefresh = (getInstance: () => KyInstance): AfterResponseHook => (request, _options, response) => {
+  const retryWithRefresh = (getInstance: () => typeof ky): AfterResponseHook => (request, _options, response) => {
     const instance = getInstance();
 
     if ('__refresh' in request) {

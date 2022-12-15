@@ -77,8 +77,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@smatch-corp/http-client@workspace:."
   dependencies:
-    "@toss/ky": ^1.1.1
-    ky: 0.31.3
+    ky: ^0.25
     tsup: ^6.5.0
     typescript: ^4.9.4
   languageName: unknown
@@ -88,13 +87,6 @@ __metadata:
   version: 2.0.0
   resolution: "@tootallnate/once@npm:2.0.0"
   checksum: ad87447820dd3f24825d2d947ebc03072b20a42bfc96cbafec16bff8bbda6c1a81fcb0be56d5b21968560c5359a0af4038a68ba150c3e1694fe4c109a063bed8
-  languageName: node
-  linkType: hard
-
-"@toss/ky@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "@toss/ky@npm:1.1.1"
-  checksum: 03856dab80e7660684bb74e9ad6b2aecd66e849588ac08d953e867bce6ee80536874a5fd44d743e0b92846163660c4c85e9bd923ac155983fecfa8c00d22f4f2
   languageName: node
   linkType: hard
 
@@ -981,10 +973,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ky@npm:0.31.3":
-  version: 0.31.3
-  resolution: "ky@npm:0.31.3"
-  checksum: 43dfa7f8f690eced69636b84e66c7b33d269b8f4245cd1a9a375325467ad611ac02834908d39220f8e883c2cfd3428bc3d967ff7e522d374faf1332fe290acdd
+"ky@npm:^0.25":
+  version: 0.25.1
+  resolution: "ky@npm:0.25.1"
+  checksum: ae1b7bebb48001d00d53e386e077939eeef7398a36b4fb45660f988ddb17d583d077290f2adb9706b4761f9d3b74918eb8d9f45ce799760143e104e1053b33ef
   languageName: node
   linkType: hard
 
