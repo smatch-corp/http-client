@@ -7,8 +7,25 @@ const groupEnd = console.groupEnd || noop;
 const log = console.log;
 
 interface CreateHttpClientOptions extends Options {
+  /**
+   * Enable logging
+   */
   logging?: boolean;
-  refresh?: (request: Request, next: (request: Request) => ResponsePromise) => ReturnType<AfterResponseHook>;
+
+  /**
+   * Check response is unauthorized respond.
+   * @param response Response
+   */
+  isUnauthorizedResponse?(response: Response): boolean | Promise<boolean>;
+
+  /**
+   * Provide how to refresh your access token by anyway.
+   * After refresh token, you should mutate request object, call next with it and return.
+   * If you failed return void or do nothing.
+   * @param request Request
+   * @param next
+   */
+  refresh?(request: Request, next: (request: Request) => ResponsePromise): ReturnType<AfterResponseHook>;
 }
 
 interface CreateHttpClient {
@@ -16,7 +33,7 @@ interface CreateHttpClient {
 }
 
 export const createHttpClient: CreateHttpClient = (prefixUrl, options = {}) => {
-  const { logging, refresh, ...restOptions } = options;
+  const { logging, isUnauthorizedResponse, refresh, ...restOptions } = options;
 
   const requestPerformanceMap = new Map<Request, DOMHighResTimeStamp>();
 
@@ -42,15 +59,19 @@ export const createHttpClient: CreateHttpClient = (prefixUrl, options = {}) => {
     }
 
     try {
-      log('Response Body:', await response.json());
+      log('Response Body:', await response.clone().json());
     } catch {
-      log('Response Body:', await response.text());
+      log('Response Body:', await response.clone().text());
     }
 
     groupEnd();
   };
 
-  const retryWithRefresh = (getInstance: () => typeof ky): AfterResponseHook => (request, _options, response) => {
+  const retryWithRefresh = (getInstance: () => typeof ky): AfterResponseHook => async (request, _options, response) => {
+    if (!isUnauthorizedResponse || !refresh) {
+      return;
+    }
+
     const instance = getInstance();
 
     if ('__refresh' in request) {
@@ -61,7 +82,7 @@ export const createHttpClient: CreateHttpClient = (prefixUrl, options = {}) => {
       __refresh: true,
     });
 
-    if (response.status === 401) {
+    if (await isUnauthorizedResponse(response.clone())) {
       const next = (request: Request) => {
         return instance(request);
       };
@@ -73,14 +94,15 @@ export const createHttpClient: CreateHttpClient = (prefixUrl, options = {}) => {
   const instance = ky.create({
     prefixUrl,
     credentials: 'same-origin',
-    throwHttpErrors: true,
+    throwHttpErrors: false,
+    timeout: false,
     hooks: {
       beforeRequest: [
         logging ? logBeforeRequest : noop,
       ],
       afterResponse: [
         logging ? logAfterResponse : noop,
-        refresh ? retryWithRefresh(() => instance) : noop,
+        retryWithRefresh(() => instance),
       ],
     },
   });
