@@ -77,7 +77,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@smatch-corp/http-client@workspace:."
   dependencies:
-    ky: ^0.25
+    ky: ^0.33.0
     tsup: ^6.5.0
     typescript: ^4.9.4
   languageName: unknown
@@ -973,10 +973,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ky@npm:^0.25":
-  version: 0.25.1
-  resolution: "ky@npm:0.25.1"
-  checksum: ae1b7bebb48001d00d53e386e077939eeef7398a36b4fb45660f988ddb17d583d077290f2adb9706b4761f9d3b74918eb8d9f45ce799760143e104e1053b33ef
+"ky@npm:^0.33.0":
+  version: 0.33.0
+  resolution: "ky@npm:0.33.0"
+  checksum: 9354833866c723f607ae4b16fb6c5edc018360a7500d35e023bb895d19f0724d5d6c97d42525990bca056ecb439d7ec1b08a0afa0f6596e4e53b386ac359f15a
   languageName: node
   linkType: hard
 
