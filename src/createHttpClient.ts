@@ -74,6 +74,7 @@ export const createHttpClient: CreateHttpClient = (prefixUrl, options = {}) => {
 
     const instance = getInstance();
 
+    // Prevent death-loop
     if ('__refresh' in request) {
       return;
     }
@@ -87,7 +88,7 @@ export const createHttpClient: CreateHttpClient = (prefixUrl, options = {}) => {
         return instance(request);
       };
 
-      return refresh!(request, next);
+      return refresh(request, next);
     }
   };
 
