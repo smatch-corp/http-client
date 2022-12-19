@@ -1,5 +1,4 @@
-import type { AfterResponseHook, BeforeRequestHook, Options, ResponsePromise } from 'ky';
-import ky from 'ky';
+import ky, { AfterResponseHook, BeforeRequestHook, Options, ResponsePromise } from 'ky';
 import { KyInstance } from 'ky/distribution/types/ky';
 
 const noop = () => {};
