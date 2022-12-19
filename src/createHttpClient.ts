@@ -1,5 +1,6 @@
 import type { AfterResponseHook, BeforeRequestHook, Options, ResponsePromise } from 'ky';
 import ky from 'ky';
+import { KyInstance } from 'ky/distribution/types/ky';
 
 const noop = () => {};
 const group = console.groupCollapsed || console.log;
@@ -24,20 +25,23 @@ interface CreateHttpClientOptions extends Options {
    * If you failed return void or do nothing.
    * @param request Request
    * @param next
+   * @param instance Ky
    */
-  refresh?(request: Request, next: (request: Request) => ResponsePromise): ReturnType<AfterResponseHook>;
+  refresh?(
+    request: Request,
+    next: (request: Request) => ResponsePromise,
+    instance: KyInstance,
+  ): ReturnType<AfterResponseHook>;
 }
 
 interface CreateHttpClient {
-  (prefixUrl: string, options?: CreateHttpClientOptions): typeof ky;
+  (prefixUrl: string, options?: CreateHttpClientOptions): KyInstance;
 }
 
-export const createHttpClient: CreateHttpClient = (prefixUrl, options = {}) => {
-  const { logging, isUnauthorizedResponse, refresh, ...restOptions } = options;
+type RequestPerformanceMap = Map<Request, DOMHighResTimeStamp>;
 
-  const requestPerformanceMap = new Map<Request, DOMHighResTimeStamp>();
-
-  const logBeforeRequest: BeforeRequestHook = (request, options) => {
+const createLogBeforeRequest =
+  (requestPerformanceMap: RequestPerformanceMap): BeforeRequestHook => (request, options) => {
     requestPerformanceMap.set(request, performance.now());
 
     const { pathname } = new URL(request.url);
@@ -46,7 +50,8 @@ export const createHttpClient: CreateHttpClient = (prefixUrl, options = {}) => {
     groupEnd();
   };
 
-  const logAfterResponse: AfterResponseHook = async (request, _options, response) => {
+const createLogAfterResponse =
+  (requestPerformanceMap: RequestPerformanceMap): AfterResponseHook => async (request, _options, response) => {
     const t1 = requestPerformanceMap.get(request);
     const t2 = performance.now();
 
@@ -67,42 +72,41 @@ export const createHttpClient: CreateHttpClient = (prefixUrl, options = {}) => {
     groupEnd();
   };
 
-  const retryWithRefresh = (getInstance: () => typeof ky): AfterResponseHook => async (request, _options, response) => {
-    if (!isUnauthorizedResponse || !refresh) {
-      return;
-    }
+export const createHttpClient: CreateHttpClient = (prefixUrl, options = {}) => {
+  const { logging, isUnauthorizedResponse, refresh, ...restOptions } = options;
 
-    const instance = getInstance();
-
-    // Prevent death-loop
-    if ('__refresh' in request) {
-      return;
-    }
-
-    Object.assign(request, {
-      __refresh: true,
-    });
-
-    if (await isUnauthorizedResponse(response.clone())) {
-      const next = (request: Request) => {
-        return instance(request);
-      };
-
-      return refresh(request, next);
-    }
-  };
-
-  const instance = ky.create({
+  const defaultOptions: Options = {
     prefixUrl,
     credentials: 'same-origin',
-    throwHttpErrors: false,
-    timeout: false,
+  };
+
+  const requestPerformanceMap: RequestPerformanceMap = new Map();
+
+  const retryWithRefresh =
+    (getInstance: () => KyInstance): AfterResponseHook => async (request, _options, response) => {
+      if (!isUnauthorizedResponse || !refresh) {
+        return;
+      }
+
+      const instance = getInstance();
+
+      if (await isUnauthorizedResponse(response.clone())) {
+        const next = (request: Request) => {
+          return instance(request, { retry: 0 });
+        };
+
+        return refresh(request, next, ky.create(defaultOptions));
+      }
+    };
+
+  const instance = ky.create({
+    ...defaultOptions,
     hooks: {
       beforeRequest: [
-        logging ? logBeforeRequest : noop,
+        logging ? createLogBeforeRequest(requestPerformanceMap) : noop,
       ],
       afterResponse: [
-        logging ? logAfterResponse : noop,
+        logging ? createLogAfterResponse(requestPerformanceMap) : noop,
         retryWithRefresh(() => instance),
       ],
     },
